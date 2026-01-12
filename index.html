@@ -190,7 +190,7 @@
     ];
 
     function loadData() {
-        if(db && firebaseConfig.apiKey !== "請替換為您的API_KEY") {
+        if(db && firebaseConfig.apiKey !== "AIzaSyAGVVS8vDljy9cHCXHLpsQhu8VrvG5R5oY") {
             db.ref('inventory').on('value', snap => {
                 inv = snap.val() || defaultInv;
                 initUI();
