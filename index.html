@@ -40,8 +40,6 @@
         th { background: #f4f4f4; position: sticky; top: 0; padding: 10px; border: 1px solid #ddd; z-index: 5; }
         td { padding: 8px; border: 1px solid #ddd; text-align: center; }
         .del-x { color: red; font-weight: bold; cursor: pointer; font-size: 1.4em; }
-        .order-tag { background: #eee; padding: 2px 6px; border-radius: 4px; font-size: 0.8em; margin-right: 4px; color: #666; display: inline-block; margin-top: 4px; border: 1px solid #ddd; }
-        .admin-input-large { font-size: 1.2em !important; padding: 8px !important; width: 100%; box-sizing: border-box; }
         .history-card { background: #fdfdfd; border: 1px solid #eee; padding: 10px; border-radius: 8px; margin-bottom: 10px; position: relative; }
         .history-del-btn { position: absolute; top: 10px; right: 10px; color: red; cursor: pointer; font-weight: bold; border: 1px solid red; padding: 2px 5px; border-radius: 4px; font-size: 0.8em; }
     </style>
@@ -55,7 +53,7 @@
 </div>
 
 <div class="main-content">
-    <div class="item-area" id="item-area">正在連接資料庫...</div>
+    <div class="item-area" id="item-area">正在連接資料庫 (Singapore)...</div>
     <div class="checkout-area">
         <div class="card">
             <strong>🛒 當前清單</strong>
@@ -145,11 +143,11 @@
 </div>
 
 <script>
-    // --- 已更新為您的專屬 Firebase 金鑰 ---
+    // --- 已完全替換為您的 Singapore 伺服器專用 Firebase 設定 ---
     const firebaseConfig = {
         apiKey: "AIzaSyAGVVS8vDljy9cHCXHLpsQhu8VrvG5R5oY",
         authDomain: "little-nook-pos.firebaseapp.com",
-        databaseURL: "https://little-nook-pos-default-rtdb.firebaseio.com",
+        databaseURL: "https://little-nook-pos-default-rtdb.asia-southeast1.firebasedatabase.app",
         projectId: "little-nook-pos",
         storageBucket: "little-nook-pos.firebasestorage.app",
         messagingSenderId: "811171860092",
@@ -161,7 +159,8 @@
         firebase.initializeApp(firebaseConfig);
         db = firebase.database();
     } catch(e) { 
-        alert("Firebase 初始化失敗，請檢查設定");
+        console.error("Firebase 初始化失敗:", e);
+        alert("資料庫連線失敗，請檢查網路或 Firebase 設定");
     }
     
     let inv = []; 
@@ -172,12 +171,10 @@
     // 初始載入
     function loadData() {
         if(db) {
-            // 監聽商品資料
             db.ref('inventory').on('value', snap => {
                 inv = snap.val() || [{cat: "🧸 預設分類", items: []}];
                 initUI();
             });
-            // 監聽訂單紀錄
             db.ref('orders').on('value', snap => {
                 const data = snap.val();
                 orders = data ? Object.keys(data).map(k => ({...data[k], firebaseKey: k})) : [];
@@ -263,7 +260,6 @@
             note: document.getElementById('discount-note').value 
         };
         
-        // 扣除庫存
         cart.forEach(item => { 
             inv.forEach(c => (c.items || []).forEach(i => { if(i.id === item.id) i.s--; })); 
         });
@@ -275,7 +271,7 @@
         document.getElementById('discount').value = '';
         document.getElementById('cash-in').value = '';
         renderCart(); 
-        alert("結帳成功！資料已同步雲端");
+        alert("結帳完成！資料已同步至新加坡伺服器");
     }
 
     function updateLog() {
@@ -304,7 +300,7 @@
                 <small>${o.items.map(i=>i.n).join(', ')}</small>
             </div>`;
         });
-        document.getElementById('history-result-area').innerHTML = html || '無資料';
+        document.getElementById('history-result-area').innerHTML = html || '此日期無資料';
     }
 
     function deleteOrder(key) {
@@ -344,7 +340,7 @@
             html += `<tr style="background:#eee;"><td colspan="6"><b>📂 ${cat.cat}</b></td></tr>`;
             (cat.items || []).forEach((it, ii) => {
                 html += `<tr>
-                    <td><span onclick="move(${ci},${ii},-1)">↑</span> <span onclick="move(${ci},${ii},1)">↓</span></td>
+                    <td><span onclick="move(${ci},${ii},-1)" style="cursor:pointer">↑</span> <span onclick="move(${ci},${ii},1)" style="cursor:pointer">↓</span></td>
                     <td><input type="text" value="${it.n}" onchange="editItem(${ci},${ii},'n',this.value)"></td>
                     <td><input type="number" value="${it.c}" onchange="editItem(${ci},${ii},'c',this.value)" style="width:50px;"></td>
                     <td><input type="number" value="${it.p}" onchange="editItem(${ci},${ii},'p',this.value)" style="width:50px;"></td>
